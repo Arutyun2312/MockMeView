@@ -74,14 +74,14 @@ public extension MockMeView {
 }
 
 public extension View {
-    func mockTarget<Content: View>(name: String, @ViewBuilder content: @escaping () -> Content) -> some View {
+    func mock<Content: View>(name: String, @ViewBuilder content: @escaping () -> Content) -> some View {
         modifier(MockMeView.TargetScreen(name: name, refreshable: false, mockView: content))
     }
-    func mockTarget<Content: View>(name: String, refreshable: Bool) -> some View {
+    func mock<Content: View>(name: String, refreshable: Bool) -> some View {
         modifier(MockMeView.TargetScreen(name: name, refreshable: refreshable) {})
     }
 
-    func mockTarget<Value: Codable>(name: String, property: Binding<Value>) -> some View {
+    func mock<Value: Codable>(name: String, property: Binding<Value>) -> some View {
         mockTarget(name: name) {
             if Json.Value(property.wrappedValue) == nil {
                 MockMeView.Property(name: name, property: property)
@@ -91,13 +91,13 @@ public extension View {
         }
     }
 
-    func mockTarget<Value: Codable>(name: String, complexProperty property: Binding<Value>) -> some View {
+    func mock<Value: Codable>(name: String, complexProperty property: Binding<Value>) -> some View {
         mockTarget(name: name) {
             MockMeView.Property(name: name, property: property)
         }
     }
     
-    func mockTarget<Value>(name: String, property: Binding<Value>, setTo values: [Value], description: @escaping (Value) -> String) -> some View {
+    func mock<Value>(name: String, property: Binding<Value>, setTo values: [Value], description: @escaping (Value) -> String) -> some View {
         mockTarget(name: name) {
             ScrollView(.horizontal) {
                 HStack {
@@ -109,7 +109,7 @@ public extension View {
             }
         }
     }
-    func mockTarget<Value: CustomStringConvertible>(name: String, property: Binding<Value>, setTo values: [Value]) -> some View {
+    func mock<Value: CustomStringConvertible>(name: String, property: Binding<Value>, setTo values: [Value]) -> some View {
         mockTarget(name: name, property: property, setTo: values, description: { $0.description })
     }
 }

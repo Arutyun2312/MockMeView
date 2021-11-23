@@ -13,42 +13,47 @@ public struct MockMeView: View {
     @State private var location: Location = .constant(.init(x: 100, y: 200))
     @State var targets: [Target] = []
     @State var mocking = false
+    @ObservedObject var globalConfig = GlobalConfig.shared
 
     public var body: some View {
-        ZStack {
-            content
-                .onPreferenceChange(TargetKey.self) { targets = $0 }
-            let view = VStack(spacing: 10) {
-                if !mocking {
-                    Circle()
-                        .frame(width: 25, height: 25)
-                }
-                Button { withAnimation { mocking.toggle() } } label: {
-                    Text(mocking ? "Don't mock me!" : "Mock me!")
-                        .foregroundColor(.white)
+        if globalConfig.isActive {
+            ZStack {
+                content
+                    .onPreferenceChange(TargetKey.self) { targets = $0 }
+                let view = VStack(spacing: 10) {
+                    if !mocking {
+                        Circle()
+                            .frame(width: 25, height: 25)
+                    }
+                    Button { withAnimation { mocking.toggle() } } label: {
+                        Text(mocking ? "Don't mock me!" : "Mock me!")
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(Color.gray)
+                            .cornerRadius(15)
+                    }
+                    if mocking {
+                        VStack(alignment: .leading, spacing: 15) {
+                            ForEach(targets) { $0 }
+                        }
                         .padding()
-                        .background(Color.gray)
+                        .background(Color.white)
                         .cornerRadius(15)
+                    }
                 }
                 if mocking {
-                    VStack(alignment: .leading, spacing: 15) {
-                        ForEach(targets) { $0 }
-                    }
-                    .padding()
-                    .background(Color.white)
-                    .cornerRadius(15)
+                    view
+                        .padding(.horizontal, UIScreen.main.bounds.width * 0.1)
+                        .padding(.vertical, UIScreen.main.bounds.height * 0.1)
+                } else {
+                    view
+                        .position(x: max(location.point.x, 0), y: max(location.point.y, 0))
+                        .padding(.all, 30)
+                        .gesture(gesture, including: mocking ? .subviews : .all)
                 }
             }
-            if mocking {
-                view
-                    .padding(.horizontal, UIScreen.main.bounds.width * 0.1)
-                    .padding(.vertical, UIScreen.main.bounds.height * 0.1)
-            } else {
-                view
-                    .position(x: max(location.point.x, 0), y: max(location.point.y, 0))
-                    .padding(.all, 30)
-                    .gesture(gesture, including: mocking ? .subviews : .all)
-            }
+        } else {
+            content
         }
     }
 
@@ -80,6 +85,13 @@ public struct MockMeView: View {
             }
         }
     }
+    
+    public class GlobalConfig: ObservableObject {
+        static let shared = GlobalConfig()
+        private init() {}
+        
+        @Published var isActive = true
+    }
 }
 
 struct MockMeScreen_Previews: PreviewProvider, View {
@@ -92,9 +104,9 @@ struct MockMeScreen_Previews: PreviewProvider, View {
             ZStack {
                 color
                 Text("Hi")
-                    .mockTarget(name: "Data", property: $data)
-                    .mockTarget(name: "Activate", property: $data.bool)
-                    .mockTarget(name: "Color", property: $color, setTo: [.red, .gray, .black, .yellow, .green])
+                    .mock(name: "Data", property: $data)
+                    .mock(name: "Activate", property: $data.bool)
+                    .mock(name: "Color", property: $color, setTo: [.red, .gray, .black, .yellow, .green])
             }
         }
     }
