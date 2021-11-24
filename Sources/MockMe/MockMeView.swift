@@ -104,9 +104,21 @@ struct MockMeScreen_Previews: PreviewProvider, View {
             ZStack {
                 color
                 Text("Hi")
-                    .mock(name: "Data", property: $data)
-                    .mock(name: "Activate", property: $data.bool)
-                    .mock(name: "Color", property: $color, setTo: [.red, .gray, .black, .yellow, .green])
+                    .mockView(viewName: "Main View") {
+                        MockProperty(name: "Data2", property: $data.bool)
+                        
+                        Button("Color") {}
+                    }
+                    .mockView(viewName: "Main View") {
+                        MockProperty(name: "Data1", property: $data.bool)
+                        
+                        Button("Color") {}
+                    }
+//                    .mock(name: "Activate", property: $data.bool)
+//                    .mock(name: "Color", property: $color, setTo: [.red, .gray, .black, .yellow, .green])
+            }
+            .mockView(viewName: "Main View") {
+                Text("Hey")
             }
         }
     }

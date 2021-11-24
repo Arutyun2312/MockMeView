@@ -1,5 +1,5 @@
 import XCTest
-@testable import MockMeView
+@testable import MockMe
 
 final class MockMeViewTests: XCTestCase {
     func testExample() throws {

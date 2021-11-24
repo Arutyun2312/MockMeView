@@ -17,7 +17,7 @@ public extension MockMeView {
         public static func reduce(value: inout Value, nextValue: () -> Value) {
             for new in nextValue().reversed() {
                 if let i = value.firstIndex(where: { $0.id == new.id }) {
-                    value[i] = new
+                    value[i] = .init(name: new.name, body: .init(Group { value[i].body; new.body }))
                 } else {
                     value.append(new)
                 }
@@ -74,43 +74,11 @@ public extension MockMeView {
 }
 
 public extension View {
-    func mock<Content: View>(name: String, @ViewBuilder content: @escaping () -> Content) -> some View {
+    func mockView<Content: View>(viewName name: String, @ViewBuilder content: @escaping () -> Content) -> some View {
         modifier(MockMeView.TargetScreen(name: name, refreshable: false, mockView: content))
     }
-    func mock<Content: View>(name: String, refreshable: Bool) -> some View {
+    func mockView(viewName name: String, refreshable: Bool) -> some View {
         modifier(MockMeView.TargetScreen(name: name, refreshable: refreshable) {})
-    }
-
-    func mock<Value: Codable>(name: String, property: Binding<Value>) -> some View {
-        mockTarget(name: name) {
-            if Json.Value(property.wrappedValue) == nil {
-                MockMeView.Property(name: name, property: property)
-            } else {
-                SimpleProperty(value: property)
-            }
-        }
-    }
-
-    func mock<Value: Codable>(name: String, complexProperty property: Binding<Value>) -> some View {
-        mockTarget(name: name) {
-            MockMeView.Property(name: name, property: property)
-        }
-    }
-    
-    func mock<Value>(name: String, property: Binding<Value>, setTo values: [Value], description: @escaping (Value) -> String) -> some View {
-        mockTarget(name: name) {
-            ScrollView(.horizontal) {
-                HStack {
-                    ForEach(values.enumerated().map { $0 }, id: \.0) {
-                        let (i, el) = $0
-                        Button(description(el)) { property.wrappedValue = el }
-                    }
-                }
-            }
-        }
-    }
-    func mock<Value: CustomStringConvertible>(name: String, property: Binding<Value>, setTo values: [Value]) -> some View {
-        mockTarget(name: name, property: property, setTo: values, description: { $0.description })
     }
 }
 
