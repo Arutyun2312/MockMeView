@@ -21,7 +21,7 @@ public struct MockProperty<Value: Codable>: View {
     @State var json: Json = .value(.string("Loading"))
     @State var controller = UIHostingController(rootView: EmptyView())
 
-    var body: some View {
+    public var body: some View {
         HStack {
             Text("\"\(name)\" \(json.label): ")
             Button("Edit") { controller.present(UIHostingController(rootView: editor), animated: true, completion: nil) }
