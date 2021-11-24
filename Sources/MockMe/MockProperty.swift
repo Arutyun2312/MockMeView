@@ -70,14 +70,14 @@ public struct MockProperty<Value: Codable>: View {
 
     public struct Simple<Value: Codable>: View {
         public init(name: String, property: Binding<Value>) {
+            _property = property
             do {
-                json = try Json(from: property.wrappedValue)
+                _json = try .init(wrappedValue: Json(from: property.wrappedValue))
             } catch {
                 let alert = UIAlertController(title: "Couldn't encode", message: "\(error)", preferredStyle: .alert)
                 alert.addAction(.init(title: "OK", style: .default, handler: nil))
                 controller.present(alert, animated: true, completion: nil)
             }
-            _property = property
         }
         
         @Binding var property: Value
