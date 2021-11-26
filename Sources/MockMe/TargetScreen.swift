@@ -26,7 +26,7 @@ public extension MockMeView {
     }
 
     struct Target: View {
-        public let id = UUID()
+        public var id: String { name }
         let name: String
         public let body: AnyView
     }
@@ -36,6 +36,7 @@ public extension MockMeView {
         let refreshable: Bool
         @ViewBuilder let mockView: MockContent
         @State var idForRefresh = UUID()
+        @State var isVisible = false
 
         var target: MockMeView.Target {
             .init(name: name, body: .init(
@@ -64,10 +65,12 @@ public extension MockMeView {
 
         func body(content: Content) -> some View {
             content
+                .onAppear { isVisible = true }
+                .onDisappear { isVisible = false }
                 .id(idForRefresh)
                 .background( // due to how preferences work, it's best to use background
                     EmptyView()
-                        .preference(key: MockMeView.TargetKey.self, value: [target])
+                        .preference(key: MockMeView.TargetKey.self, value: isVisible ? [target] : [])
                 )
         }
     }

@@ -103,6 +103,8 @@ indirect enum Json: Codable, CustomStringConvertible {
             }
         }
 
+        var label: String { Mirror(reflecting: self).children.first!.label! }
+        
         var description: String {
             switch self {
             case .string(let value):
@@ -129,4 +131,20 @@ extension Json: ExpressibleByFloatLiteral {
 }
 extension Json: ExpressibleByBooleanLiteral {
     init(booleanLiteral value: BooleanLiteralType) { self = .value(.bool(value)) }
+}
+extension Json: ExpressibleByArrayLiteral {
+    init(arrayLiteral value: Json...) { self = .array(value) }
+}
+
+extension Json.Value: ExpressibleByStringLiteral {
+    init(stringLiteral value: StringLiteralType) { self = .string(value) }
+}
+extension Json.Value: ExpressibleByIntegerLiteral {
+    init(integerLiteral value: Int) { self = .int(value) }
+}
+extension Json.Value: ExpressibleByFloatLiteral {
+    init(floatLiteral value: FloatLiteralType) { self = .double(value) }
+}
+extension Json.Value: ExpressibleByBooleanLiteral {
+    init(booleanLiteral value: BooleanLiteralType) { self = .bool(value) }
 }

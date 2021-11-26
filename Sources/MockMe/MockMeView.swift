@@ -110,7 +110,7 @@ struct MockMeScreen_Previews: PreviewProvider, View {
                         Button("Color") {}
                     }
                     .mockView(viewName: "Main View") {
-                        MockProperty(name: "Data1", property: $data.bool)
+                        MockProperty(name: "Data1", property: $data)
                         
                         Button("Color") {}
                     }

@@ -11,15 +11,10 @@ import Foundation
 import SwiftUI
 
 public struct MockProperty<Value: Codable>: View {
-    public init(name: String, property: Binding<Value>) {
-        self.name = name
-        _property = property
-    }
-    
     let name: String
     @Binding var property: Value
-    @State var json: Json = .value(.string("Loading"))
-    @State var controller = UIHostingController(rootView: EmptyView())
+    @State var json: Json = "Loading"
+    let controller = UIHostingController(rootView: EmptyView())
 
     public var body: some View {
         HStack {
@@ -32,8 +27,7 @@ public struct MockProperty<Value: Codable>: View {
     var editor: some View {
         NavigationView {
             VStack {
-                JsonEditor(json: $json)
-                let controller = UIHostingController(rootView: EmptyView())
+                JsonEditor(json: $json, name: name, isProperty: false)
                 Button {
                     do {
                         property = try json.toObj()
@@ -53,9 +47,8 @@ public struct MockProperty<Value: Codable>: View {
                         )
                 }
                 .padding(.horizontal)
-                .background(controller.toSwiftUI())
             }
-            .navigationBarTitle(Text(name))
+            .background(controller.toSwiftUI())
         }
         .onAppear {
             do {
@@ -68,7 +61,7 @@ public struct MockProperty<Value: Codable>: View {
         }
     }
 
-    public struct Simple<Value: Codable>: View {
+    public struct Simple: View {
         public init(name: String, property: Binding<Value>) {
             _property = property
             do {
@@ -79,13 +72,13 @@ public struct MockProperty<Value: Codable>: View {
                 controller.present(alert, animated: true, completion: nil)
             }
         }
-        
+
         @Binding var property: Value
         @State var json: Json = "Loading"
         @State var controller = UIHostingController(rootView: EmptyView())
 
-       public var body: some View {
-            VStack { JsonEditor(json: $json, forSheet: false) }
+        public var body: some View {
+            VStack { JsonEditor(json: $json, forSheet: false, isProperty: false) }
                 .onReceive(Just(json)) { json in
                     do {
                         property = try json.toObj()
