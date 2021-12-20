@@ -9,6 +9,7 @@
 import SwiftUI
 import UIKit
 
+#if DEBUG
 extension MockMeView.Target: Hashable, Identifiable {
     public static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
     public func hash(into hasher: inout Hasher) { id.hash(into: &hasher) }
@@ -19,15 +20,4 @@ public extension MockMeView {
         self.init(content: .init(content()))
     }
 }
-
-extension UIViewController {
-    func toSwiftUI() -> some View {
-        struct CustomView: UIViewControllerRepresentable {
-            let content: UIViewController
-            
-            func makeUIViewController(context: Context) -> UIViewController { content }
-            func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
-        }
-        return CustomView(content: self)
-    }
-}
+#endif

@@ -7,8 +7,12 @@
 
 import Foundation
 
-indirect enum Json: Codable, CustomStringConvertible {
-    case value(Value), object([(String, Json)]), array([Json])
+indirect enum Json: Equatable, Codable, CustomStringConvertible {
+    static func == (lhs: Json, rhs: Json) -> Bool { lhs.description == rhs.description }
+
+    typealias Key = [String]
+
+    case value(Value?), object([(String, Json)]), array([Json])
 
     init<Value: Encodable>(from value: Value) throws {
         self = try JSONDecoder().decode(Json.self, from: JSONEncoder().encode(value))
@@ -66,6 +70,65 @@ indirect enum Json: Codable, CustomStringConvertible {
 
     var label: String { Mirror(reflecting: self).children.first!.label! }
 
+    subscript(paths: Key) -> Json? {
+        get {
+            guard let path = paths.first else { return self }
+            guard let json = self[path] else { return nil }
+            return json[.init(paths.dropFirst())]
+        }
+        set {
+            if let path = paths.first {
+                if paths.count == 1 {
+                    self[path] = newValue
+                } else {
+                    guard var value = self[path] else { return }
+                    value[.init(paths.dropFirst())] = newValue
+                    self[path] = value
+                }
+            } else {
+                guard let newValue = newValue else { return }
+                self = newValue
+            }
+        }
+    }
+
+    private subscript(path: String) -> Json? {
+        get {
+            switch self {
+            case .value: return nil
+            case .object(let object):
+                guard let value = object.first(where: { $0.0 == path })?.1 else { return nil }
+                return value
+            case .array(let array):
+                guard let i = Int(path),
+                      let value = array.indices.contains(i) ? array[i] : nil
+                else { return nil }
+                return value
+            }
+        }
+        set {
+            switch self {
+            case .value: return
+            case .object(var object):
+                guard let i = object.firstIndex(where: { $0.0 == path }) else { return }
+                if let newValue = newValue {
+                    object[i] = (object[i].0, newValue)
+                } else {
+                    object.remove(at: i)
+                }
+                self = .object(object)
+            case .array(var array):
+                guard let i = Int(path) else { return }
+                if let newValue = newValue {
+                    array[i] = newValue
+                } else {
+                    array.remove(at: i)
+                }
+                self = .array(array)
+            }
+        }
+    }
+
     func encode(to encoder: Encoder) throws { try description.encode(to: encoder) }
     func toObj<Value: Decodable>() throws -> Value {
         try JSONDecoder().decode(Value.self, from: description.data(using: .utf8)!)
@@ -74,7 +137,7 @@ indirect enum Json: Codable, CustomStringConvertible {
     var description: String {
         switch self {
         case .value(let value):
-            return value.description
+            return value?.description ?? "null"
         case .object(let dictionary):
             return "{\(dictionary.map { "\"\($0.0)\": \($0.1.description)" }.joined(separator: ", "))}"
         case .array(let array):
@@ -82,7 +145,7 @@ indirect enum Json: Codable, CustomStringConvertible {
         }
     }
 
-    enum Value: CustomStringConvertible {
+    enum Value: Equatable, CustomStringConvertible {
         case string(String), int(Int), double(Double), bool(Bool)
 
         init(_ value: String) { self = .string(value) }
@@ -104,7 +167,7 @@ indirect enum Json: Codable, CustomStringConvertible {
         }
 
         var label: String { Mirror(reflecting: self).children.first!.label! }
-        
+
         var description: String {
             switch self {
             case .string(let value):
@@ -123,15 +186,19 @@ indirect enum Json: Codable, CustomStringConvertible {
 extension Json: ExpressibleByStringLiteral {
     init(stringLiteral value: StringLiteralType) { self = .value(.string(value)) }
 }
+
 extension Json: ExpressibleByIntegerLiteral {
     init(integerLiteral value: Int) { self = .value(.int(value)) }
 }
+
 extension Json: ExpressibleByFloatLiteral {
     init(floatLiteral value: FloatLiteralType) { self = .value(.double(value)) }
 }
+
 extension Json: ExpressibleByBooleanLiteral {
     init(booleanLiteral value: BooleanLiteralType) { self = .value(.bool(value)) }
 }
+
 extension Json: ExpressibleByArrayLiteral {
     init(arrayLiteral value: Json...) { self = .array(value) }
 }
@@ -139,12 +206,15 @@ extension Json: ExpressibleByArrayLiteral {
 extension Json.Value: ExpressibleByStringLiteral {
     init(stringLiteral value: StringLiteralType) { self = .string(value) }
 }
+
 extension Json.Value: ExpressibleByIntegerLiteral {
     init(integerLiteral value: Int) { self = .int(value) }
 }
+
 extension Json.Value: ExpressibleByFloatLiteral {
     init(floatLiteral value: FloatLiteralType) { self = .double(value) }
 }
+
 extension Json.Value: ExpressibleByBooleanLiteral {
     init(booleanLiteral value: BooleanLiteralType) { self = .bool(value) }
 }
