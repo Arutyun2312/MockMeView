@@ -115,8 +115,6 @@ public struct MockProperty<Value: Codable>: View {
     }
 }
 
-extension String: Error {}
-
 struct DynamicCodingKey: CodingKey {
     var stringValue = ""
     var intValue: Int?
@@ -125,3 +123,5 @@ struct DynamicCodingKey: CodingKey {
     init?(intValue: Int) { self.intValue = intValue }
 }
 #endif
+
+extension String: Error {}

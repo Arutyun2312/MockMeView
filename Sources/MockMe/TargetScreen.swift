@@ -10,7 +10,7 @@ import Combine
 import SwiftUI
 
 #if DEBUG
-public extension MockMeView {
+extension MockMeView {
     struct TargetKey: PreferenceKey {
         public typealias Value = [Target]
         public static var defaultValue: Value = []

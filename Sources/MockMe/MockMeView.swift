@@ -10,14 +10,13 @@ import Combine
 import SwiftUI
 
 #if DEBUG
-    public struct MockMeView: View {
-        let content: AnyView
+    struct MockMeView: ViewModifier {
         @State private var location: Location = .constant(GlobalConfig.shared.lastPosition)
         @State var targets: [Target] = []
         @State var mocking = false
         @ObservedObject var globalConfig = GlobalConfig.shared
 
-        public var body: some View {
+        public func body(content: Content) -> some View {
             if globalConfig.isActive {
                 ZStack {
                     content
@@ -130,9 +129,7 @@ import SwiftUI
     }
 
     public extension View {
-        func mockMeView() -> some View {
-            MockMeView { self }
-        }
+        func mockMeView() -> some View { modifier(MockMeView()) }
     }
 
     struct MockMeScreen_Previews: PreviewProvider, View {
@@ -141,27 +138,26 @@ import SwiftUI
         @State var color = Color.black
 
         var body: some View {
-            MockMeView {
-                ZStack {
-                    color
-                    Text("Hi")
-                    #if DEBUG
-                        .mockView(viewName: "Main View") {
-                            MockProperty.Simple(name: "Data2", property: $data.name)
-                        }
-                        .mockView(viewName: "Main View") {
-                            MockProperty(name: "Data1", property: $data)
-                        }
-                    #endif
-//                    .mock(name: "Activate", property: $data.bool)
-//                    .mock(name: "Color", property: $color, setTo: [.red, .gray, .black, .yellow, .green])
-                }
+            ZStack {
+                color
+                Text("Hi")
                 #if DEBUG
                     .mockView(viewName: "Main View") {
-                        Text("Hey")
+                        MockProperty.Simple(name: "Data2", property: $data.name)
+                    }
+                    .mockView(viewName: "Main View") {
+                        MockProperty(name: "Data1", property: $data)
                     }
                 #endif
+//                    .mock(name: "Activate", property: $data.bool)
+//                    .mock(name: "Color", property: $color, setTo: [.red, .gray, .black, .yellow, .green])
             }
+            #if DEBUG
+                .mockView(viewName: "Main View") {
+                    Text("Hey")
+                }
+                .mockMeView()
+            #endif
         }
 
         struct Data: Codable {
