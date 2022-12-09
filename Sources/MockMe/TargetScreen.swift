@@ -92,17 +92,17 @@ public extension View {
     }
 }
 
-private struct SimpleProperty<Value: Codable>: View {
-    @State var json: Json = "Loading"
-    @Binding var value: Value
-
-    var body: some View {
-        JsonEditor(json: $json, initial: json)
-            .onReceive(Just(json)) { json in
-                guard let value: Value = try? json.toObj() else { return }
-                self.value = value
-            }
-            .onAppear { json = (try? Json(from: value)) ?? "Error" }
-    }
-}
+//private struct SimpleProperty<Value: Codable>: View {
+//    @State var json: Json = "Loading"
+//    @Binding var value: Value
+//
+//    var body: some View {
+//        JsonEditor(json: $json, initial: json)
+//            .onReceive(Just(json)) { json in
+//                guard let value: Value = try? json.toObj() else { return }
+//                self.value = value
+//            }
+//            .onAppear { json = (try? Json(from: value)) ?? "Error" }
+//    }
+//}
 #endif

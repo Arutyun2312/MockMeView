@@ -13,7 +13,7 @@ import SwiftUI
     struct MockMeView: ViewModifier {
         @State private var location: Location = .constant(GlobalConfig.shared.lastPosition)
         @State var targets: [Target] = []
-        @State var mocking = false
+        @State var open = false
         @ObservedObject var globalConfig = GlobalConfig.shared
 
         public func body(content: Content) -> some View {
@@ -22,13 +22,13 @@ import SwiftUI
                     content
                         .onPreferenceChange(TargetKey.self) { targets = $0 }
                     let view = VStack(spacing: 10) {
-                        Text(mocking ? "Don't mock me!" : "Mock me!")
+                        Text(open ? "Don't mock me!" : "Mock me!")
                             .foregroundColor(.white)
                             .padding(.all, 8)
                             .background(Color.gray)
                             .cornerRadius(10)
-                            .onTapGesture { withAnimation { mocking.toggle() } }
-                        if mocking {
+                            .onTapGesture { withAnimation { open.toggle() } }
+                        if open {
                             VStack(alignment: .leading, spacing: 15) {
                                 ForEach(targets) { $0 }
                             }
@@ -37,15 +37,13 @@ import SwiftUI
                             .cornerRadius(15)
                         }
                     }
-                    if mocking {
+                    if open {
                         view
-                            .padding(.horizontal, UIScreen.main.bounds.width * 0.1)
-                            .padding(.vertical, UIScreen.main.bounds.height * 0.1)
                     } else {
                         view
                             .position(x: max(location.point.x, 0), y: max(location.point.y, 0))
                             .padding(.all, 30)
-                            .gesture(gesture, including: mocking ? .subviews : .all)
+                            .gesture(gesture, including: open ? .subviews : .all)
                             .onReceive(Just(location)) { if globalConfig.lastPosition != $0.point { globalConfig.lastPosition = $0.point } }
                     }
                 }
@@ -116,15 +114,15 @@ import SwiftUI
 
     extension UserDefaults {
         func decode<T: Decodable>(_ t: T.Type = T.self, key: String) -> T? {
-            guard let data = self.data(forKey: key),
-                  let obj = try? JSONDecoder().decode(t, from: data)
+            guard let n = data(forKey: key),
+                  let obj = try? JSONDecoder().decode(t, from: n)
             else { return nil }
             return obj
         }
 
         func encode<T: Encodable>(_ obj: T, key: String) {
-            let data = try! JSONEncoder().encode(obj)
-            set(data, forKey: key)
+            let n = try! JSONEncoder().encode(obj)
+            set(n, forKey: key)
         }
     }
 
@@ -143,10 +141,12 @@ import SwiftUI
                 Text("Hi")
                 #if DEBUG
                     .mockView(viewName: "Main View") {
-                        MockProperty.Simple(name: "Data2", property: $data.name)
+                        ScrollView {
+                            MockField(label: "Data2", value: $data.name)
+                        }
                     }
                     .mockView(viewName: "Main View") {
-                        MockProperty(name: "Data1", property: $data)
+//                        MockProperty(name: "Data1", property: $data)
                     }
                 #endif
 //                    .mock(name: "Activate", property: $data.bool)
@@ -154,7 +154,9 @@ import SwiftUI
             }
             #if DEBUG
                 .mockView(viewName: "Main View") {
-                    Text("Hey")
+                    VStack {
+                        Text("Hey")
+                    }
                 }
                 .mockMeView()
             #endif
